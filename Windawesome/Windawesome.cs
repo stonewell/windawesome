@@ -9,6 +9,7 @@ namespace Windawesome
 {
 	public sealed class Windawesome : NativeWindow
 	{
+        public bool LeaveWindowsTaskbarAlone { get; set; }
 		public Workspace CurrentWorkspace { get; private set; }
 
 		public readonly Monitor[] monitors;
@@ -104,6 +105,8 @@ namespace Windawesome
 			topmostWindows = new WindowBase[config.Workspaces.Length];
 			Workspace.WindowActivatedEvent += h => topmostWindows[CurrentWorkspace.id - 1] = CurrentWorkspace.GetWindow(h) ?? new WindowBase(h);
 
+		    Monitor.LeaveWindowsTaskbarAlone = config.LeaveWindowsTaskbarAlone;
+
 			// add workspaces to their corresponding monitors
 			monitors.ForEach(m => config.Workspaces.Where(w => w.Monitor == m).ForEach(m.AddWorkspace)); // n ^ 2 but hopefully fast enough
 
@@ -148,7 +151,12 @@ namespace Windawesome
 
 			// initialize monitors and switch to the default starting workspaces
 			monitors.ForEach(m => m.Initialize());
-			Monitor.ShowHideWindowsTaskbar(CurrentWorkspace.ShowWindowsTaskbar);
+
+
+		    if (!config.LeaveWindowsTaskbarAlone) {
+                Monitor.ShowHideWindowsTaskbar(CurrentWorkspace.ShowWindowsTaskbar);
+		    }
+
 			DoForTopmostWindowForWorkspace(CurrentWorkspace, ActivateWindow);
 			CurrentWorkspace.IsCurrentWorkspace = true;
 

@@ -24,6 +24,7 @@ namespace Windawesome
 		private static readonly NativeMethods.WinEventDelegate taskbarShownWinEventDelegate = TaskbarShownWinEventDelegate;
 		private static readonly IntPtr taskbarShownWinEventHook;
 
+        public static bool LeaveWindowsTaskbarAlone { get; set; }
 		// TODO: when running under XP and a normal user account, but Windawesome is elevated, for example with SuRun,
 		// the AppBars don't resize the desktop working area
 		private sealed class AppBarNativeWindow : NativeWindow
@@ -247,7 +248,7 @@ namespace Windawesome
 		{
 			NativeMethods.UnhookWinEvent(taskbarShownWinEventHook);
 
-			if (!isWindowsTaskbarShown)
+			if (!isWindowsTaskbarShown && !LeaveWindowsTaskbarAlone)
 			{
 				ShowHideWindowsTaskbar(true);
 			}
@@ -289,7 +290,7 @@ namespace Windawesome
 		private static void TaskbarShownWinEventDelegate(IntPtr hWinEventHook, NativeMethods.EVENT eventType,
 			IntPtr hwnd, NativeMethods.OBJID idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
 		{
-			if (NativeMethods.IsWindowVisible(SystemAndProcessInformation.taskbarHandle) != isWindowsTaskbarShown)
+			if (NativeMethods.IsWindowVisible(SystemAndProcessInformation.taskbarHandle) != isWindowsTaskbarShown && !LeaveWindowsTaskbarAlone)
 			{
 				ShowHideWindowsTaskbar(isWindowsTaskbarShown);
 			}
@@ -302,7 +303,7 @@ namespace Windawesome
 			HideBars(workspace, CurrentVisibleWorkspace);
 
 			// hides or shows the Windows taskbar
-			if (screen.Primary && workspace.ShowWindowsTaskbar != isWindowsTaskbarShown)
+			if (screen.Primary && workspace.ShowWindowsTaskbar != isWindowsTaskbarShown && !LeaveWindowsTaskbarAlone)
 			{
 				ShowHideWindowsTaskbar(workspace.ShowWindowsTaskbar);
 			}

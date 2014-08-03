@@ -18,6 +18,8 @@ namespace Windawesome
 		public IEnumerable<Workspace> StartingWorkspaces { get; set; }
 		public IEnumerable<ProgramRule> ProgramRules { get; set; }
 
+        public bool LeaveWindowsTaskbarAlone { get; set; }
+
 		public int WindowBorderWidth { get; set; }
 		public int WindowPaddedBorderWidth { get; set; }
 		public bool ShowMinimizeMaximizeRestoreAnimations { get; set; }
