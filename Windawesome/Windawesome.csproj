@@ -97,9 +97,18 @@
       <HintPath>..\lib\IronPython.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="IronPython.Modules">
+      <HintPath>..\lib\IronPython.Modules.dll</HintPath>
+    </Reference>
     <Reference Include="IronRuby">
       <HintPath>..\lib\IronRuby.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="IronRuby.Libraries">
+      <HintPath>..\lib\IronRuby.Libraries.dll</HintPath>
+    </Reference>
+    <Reference Include="IronRuby.Libraries.Yaml">
+      <HintPath>..\lib\IronRuby.Libraries.Yaml.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Dynamic, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -111,6 +120,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\Microsoft.Scripting.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Scripting.AspNet">
+      <HintPath>..\lib\Microsoft.Scripting.AspNet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />

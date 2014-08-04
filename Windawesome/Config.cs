@@ -38,10 +38,13 @@ namespace Windawesome
 
 		internal void LoadConfiguration(Windawesome windawesome)
 		{
-			const string layoutsDirName = "Layouts";
-			const string widgetsDirName = "Widgets";
-			const string pluginsDirName = "Plugins";
-			const string configDirName  = "Config";
+		    string userDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+		    string baseDir = Path.Combine(userDir, ".windawesome");
+
+			string layoutsDirName = "Layouts";
+			string widgetsDirName = "Widgets";
+			string pluginsDirName = "Plugins";
+			string configDirName  = Path.Combine(baseDir, "Config");
 
 			if (!Directory.Exists(configDirName) || Directory.EnumerateFiles(configDirName).FirstOrDefault() == null)
 			{
