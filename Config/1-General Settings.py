@@ -15,6 +15,10 @@ def onLayoutLabelClick():
 	else:
 		windawesome.CurrentWorkspace.ChangeLayout(FullScreenLayout())
 
+config.FocusFollowsMouse = False
+config.FocusFollowsMouseSetOnTop = False
+config.MoveMouseOverMonitorsOnSwitch = False
+
 config.WindowBorderWidth = 1
 config.WindowPaddedBorderWidth = 0
 
@@ -124,18 +128,18 @@ config.Bars = Enumerable.ToArray[Bar]([
 ])
 
 config.Workspaces = Enumerable.ToArray[Workspace]([
-	Workspace(windawesome.monitors[0], FloatingLayout(), [config.Bars[1]], name = 'main'),
-	Workspace(windawesome.monitors[0], FullScreenLayout(), [config.Bars[0]], name = 'web'),
-	Workspace(windawesome.monitors[0], FullScreenLayout(), [config.Bars[0]]),
-	Workspace(windawesome.monitors[0], TileLayout(masterAreaAxis = TileLayout.LayoutAxis.TopToBottom, masterAreaWindowsCount = 2, masterAreaFactor = 0.5), [config.Bars[0]], name = 'chat'),
-	Workspace(windawesome.monitors[0], FullScreenLayout(), [config.Bars[0]]),
+	Workspace(windawesome.monitors[0], FullScreenLayout(), [config.Bars[0]], name = 'main'),
+	Workspace(windawesome.monitors[1], FullScreenLayout(), [config.Bars[0]], name = 'web'),
+	Workspace(windawesome.monitors[2], FullScreenLayout(), [config.Bars[0]]),
+	Workspace(windawesome.monitors[0], FullScreenLayout(), [config.Bars[0]], name = 'chat'),
+	Workspace(windawesome.monitors[1], FullScreenLayout(), [config.Bars[0]]),
 	Workspace(windawesome.monitors[0], FullScreenLayout(), [config.Bars[0]]),
 	Workspace(windawesome.monitors[0], FullScreenLayout(), [config.Bars[0]]),
 	Workspace(windawesome.monitors[0], FullScreenLayout(), [config.Bars[0]], name = 'mail'),
 	Workspace(windawesome.monitors[0], FullScreenLayout(), [config.Bars[0]], name = 'BC')
 ])
 
-config.StartingWorkspaces = [config.Workspaces[0]]
+config.StartingWorkspaces = [config.Workspaces[0], config.Workspaces[4], config.Workspaces[2]]
 
 config.Plugins = [
 	#LoggerPlugin(logWorkspaceSwitching = True, logWindowMinimization = True, logWindowRestoration = True,

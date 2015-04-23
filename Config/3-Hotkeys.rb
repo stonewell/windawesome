@@ -164,6 +164,16 @@ subscribe modifiers.Alt, key.K do
 	end
 end
 
+subscribe 0, key.CapsLock | key.K do
+	window = get_current_workspace_managed_window
+	if window
+		previous_window = windawesome.current_workspace.get_previous_window window
+		windawesome.switch_to_application previous_window.hWnd if previous_window
+	elsif windawesome.current_workspace.get_windows_count > 0
+		windawesome.switch_to_application windawesome.current_workspace.get_windows.first.value.hWnd
+	end
+end
+
 subscribe modifiers.Alt | modifiers.Shift, key.J do
 	window = get_current_workspace_managed_window
 	windawesome.current_workspace.shift_window_forward window if window
@@ -207,7 +217,7 @@ end
 	k = eval("key.D" + i.to_s)
 
 	subscribe modifiers.Alt, k do
-		windawesome.switch_to_workspace i
+		windawesome.move_workspace_to_current_monitor i
 	end
 
 	subscribe modifiers.Alt | modifiers.Shift, k do

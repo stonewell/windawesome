@@ -255,156 +255,163 @@ namespace Windawesome
 			int processId;
 			NativeMethods.GetWindowThreadProcessId(hWnd, out processId);
 
-			using (var process = System.Diagnostics.Process.GetProcessById(processId))
-			{
-				// TODO: this line could throw an exception (as well as all others which use a Process instance)
-				var processName = process.ProcessName;
+            try
+            {
+                using (var process = System.Diagnostics.Process.GetProcessById(processId))
+                {
+                    // TODO: this line could throw an exception (as well as all others which use a Process instance)
+                    var processName = process.ProcessName;
 
-				var programRule = config.ProgramRules.FirstOrDefault(r => r.IsMatch(hWnd, className, displayName, processName, style, exStyle));
-				DoProgramRuleMatched(programRule, hWnd, className, displayName, processName, style, exStyle);
-				if (programRule == null || !programRule.isManaged)
-				{
-					return false;
-				}
-				if (programRule.tryAgainAfter >= 0 && firstTry && finishedInitializing)
-				{
-					System.Threading.Thread.Sleep(programRule.tryAgainAfter);
-					return Utilities.IsAppWindow(hWnd) && AddWindowToWorkspace(hWnd, false);
-				}
+                    var programRule = config.ProgramRules.FirstOrDefault(r => r.IsMatch(hWnd, className, displayName, processName, style, exStyle));
+                    DoProgramRuleMatched(programRule, hWnd, className, displayName, processName, style, exStyle);
+                    if (programRule == null || !programRule.isManaged)
+                    {
+                        return false;
+                    }
+                    if (programRule.tryAgainAfter >= 0 && firstTry && finishedInitializing)
+                    {
+                        System.Threading.Thread.Sleep(programRule.tryAgainAfter);
+                        return Utilities.IsAppWindow(hWnd) && AddWindowToWorkspace(hWnd, false);
+                    }
 
-				IEnumerable<ProgramRule.Rule> matchingRules = programRule.rules;
-				var workspacesCount = programRule.rules.Length;
-				var hasWorkspaceZeroRule = matchingRules.Any(r => r.workspace == 0);
-				var hasCurrentWorkspaceRule = matchingRules.Any(r => r.workspace == CurrentWorkspace.id);
-				// matchingRules.workspaces could be { 0, 1 } and you could be at workspace 1.
-				// Then, "hWnd" would be added twice if it were not for this check
-				// TODO: it could be added twice on two different workspaces which are shown at the same time
-				if (hasWorkspaceZeroRule && hasCurrentWorkspaceRule)
-				{
-					matchingRules = matchingRules.Where(r => r.workspace != 0);
-					workspacesCount--;
-				}
+                    IEnumerable<ProgramRule.Rule> matchingRules = programRule.rules;
+                    var workspacesCount = programRule.rules.Length;
+                    var hasWorkspaceZeroRule = matchingRules.Any(r => r.workspace == 0);
+                    var hasCurrentWorkspaceRule = matchingRules.Any(r => r.workspace == CurrentWorkspace.id);
+                    // matchingRules.workspaces could be { 0, 1 } and you could be at workspace 1.
+                    // Then, "hWnd" would be added twice if it were not for this check
+                    // TODO: it could be added twice on two different workspaces which are shown at the same time
+                    if (hasWorkspaceZeroRule && hasCurrentWorkspaceRule)
+                    {
+                        matchingRules = matchingRules.Where(r => r.workspace != 0);
+                        workspacesCount--;
+                    }
 
-				if (finishedInitializing)
-				{
-					if (!hasWorkspaceZeroRule && !hasCurrentWorkspaceRule)
-					{
-						var hasVisibleWorkspaceRule = matchingRules.Any(r => config.Workspaces[r.workspace - 1].IsWorkspaceVisible);
-						switch (programRule.onWindowCreatedAction)
-						{
-							case OnWindowCreatedOrShownAction.TemporarilyShowWindowOnCurrentWorkspace:
-								if (!hasVisibleWorkspaceRule)
-								{
-									CurrentWorkspace.Monitor.temporarilyShownWindows.Add(hWnd);
-									OnWindowCreatedOnCurrentWorkspace(hWnd, programRule);
-								}
-								break;
-							case OnWindowCreatedOrShownAction.HideWindow:
-								if (!hasVisibleWorkspaceRule)
-								{
-									hiddenApplications.Add(hWnd);
-									NativeMethods.ShowWindow(hWnd, NativeMethods.SW.SW_HIDE);
-								}
-								if (NativeMethods.GetForegroundWindow() == hWnd)
-								{
-									DoForTopmostWindowForWorkspace(CurrentWorkspace, ActivateWindow);
-								}
-								break;
-						}
-					}
+                    if (finishedInitializing)
+                    {
+                        if (!hasWorkspaceZeroRule && !hasCurrentWorkspaceRule)
+                        {
+                            var hasVisibleWorkspaceRule = matchingRules.Any(r => config.Workspaces[r.workspace - 1].IsWorkspaceVisible);
+                            switch (programRule.onWindowCreatedAction)
+                            {
+                                case OnWindowCreatedOrShownAction.TemporarilyShowWindowOnCurrentWorkspace:
+                                    if (!hasVisibleWorkspaceRule)
+                                    {
+                                        CurrentWorkspace.Monitor.temporarilyShownWindows.Add(hWnd);
+                                        OnWindowCreatedOnCurrentWorkspace(hWnd, programRule);
+                                    }
+                                    break;
+                                case OnWindowCreatedOrShownAction.HideWindow:
+                                    if (!hasVisibleWorkspaceRule)
+                                    {
+                                        hiddenApplications.Add(hWnd);
+                                        NativeMethods.ShowWindow(hWnd, NativeMethods.SW.SW_HIDE);
+                                    }
+                                    if (NativeMethods.GetForegroundWindow() == hWnd)
+                                    {
+                                        DoForTopmostWindowForWorkspace(CurrentWorkspace, ActivateWindow);
+                                    }
+                                    break;
+                            }
+                        }
 
-					if (programRule.windowCreatedDelay == -1)
-					{
-						try
-						{
-							process.WaitForInputIdle(10000);
-						}
-						catch (InvalidOperationException)
-						{
-						}
-						catch (System.ComponentModel.Win32Exception)
-						{
-						}
-					}
-					else if (programRule.windowCreatedDelay > 0)
-					{
-						System.Threading.Thread.Sleep(programRule.windowCreatedDelay);
-					}
-				}
+                        if (programRule.windowCreatedDelay == -1)
+                        {
+                            try
+                            {
+                                process.WaitForInputIdle(10000);
+                            }
+                            catch (InvalidOperationException)
+                            {
+                            }
+                            catch (System.ComponentModel.Win32Exception)
+                            {
+                            }
+                        }
+                        else if (programRule.windowCreatedDelay > 0)
+                        {
+                            System.Threading.Thread.Sleep(programRule.windowCreatedDelay);
+                        }
+                    }
 
-				if (programRule.redrawDesktopOnWindowCreated)
-				{
-					// If you have a Windows Explorer window open on one workspace (and it is the only non-minimized window open) and you start
-					// mintty (which defaults to another workspace) then the desktop is not redrawn right (you can see that if mintty
-					// is set to be transparent
-					// On Windows XP SP3
-					NativeMethods.RedrawWindow(IntPtr.Zero, IntPtr.Zero, IntPtr.Zero,
-						NativeMethods.RDW.RDW_ALLCHILDREN | NativeMethods.RDW.RDW_ERASE | NativeMethods.RDW.RDW_INVALIDATE);
-				}
+                    if (programRule.redrawDesktopOnWindowCreated)
+                    {
+                        // If you have a Windows Explorer window open on one workspace (and it is the only non-minimized window open) and you start
+                        // mintty (which defaults to another workspace) then the desktop is not redrawn right (you can see that if mintty
+                        // is set to be transparent
+                        // On Windows XP SP3
+                        NativeMethods.RedrawWindow(IntPtr.Zero, IntPtr.Zero, IntPtr.Zero,
+                            NativeMethods.RDW.RDW_ALLCHILDREN | NativeMethods.RDW.RDW_ERASE | NativeMethods.RDW.RDW_INVALIDATE);
+                    }
 
-				var list = new LinkedList<Tuple<Workspace, Window>>();
-				applications[hWnd] = list;
+                    var list = new LinkedList<Tuple<Workspace, Window>>();
+                    applications[hWnd] = list;
 
-				var menu = NativeMethods.GetMenu(hWnd);
-				var is64BitProcess = NativeMethods.Is64BitProcess(hWnd);
+                    var menu = NativeMethods.GetMenu(hWnd);
+                    var is64BitProcess = NativeMethods.Is64BitProcess(hWnd);
 
-				var isMinimized = NativeMethods.IsIconic(hWnd);
+                    var isMinimized = NativeMethods.IsIconic(hWnd);
 
-				foreach (var rule in matchingRules)
-				{
-					var window = new Window(hWnd, className, displayName, processName, workspacesCount,
-						is64BitProcess, style, exStyle, rule, programRule, menu);
+                    foreach (var rule in matchingRules)
+                    {
+                        var window = new Window(hWnd, className, displayName, processName, workspacesCount,
+                            is64BitProcess, style, exStyle, rule, programRule, menu);
 
-					var workspace = rule.workspace == 0 ? CurrentWorkspace : config.Workspaces[rule.workspace - 1];
-					list.AddLast(Tuple.Create(workspace, window));
+                        var workspace = rule.workspace == 0 ? CurrentWorkspace : config.Workspaces[rule.workspace - 1];
+                        list.AddLast(Tuple.Create(workspace, window));
 
-					workspace.WindowCreated(window);
+                        workspace.WindowCreated(window);
 
-					if (!workspace.IsCurrentWorkspace && !isMinimized)
-					{
-						if (hasWorkspaceZeroRule || hasCurrentWorkspaceRule ||
-							list.Count > 1 ||
-							programRule.onWindowCreatedAction == OnWindowCreatedOrShownAction.HideWindow ||
-							programRule.onWindowCreatedAction == OnWindowCreatedOrShownAction.TemporarilyShowWindowOnCurrentWorkspace)
-						{
-							// this workspace is not going to be switched to because of this window addition
-							switch (programRule.onWindowCreatedOnInactiveWorkspaceAction)
-							{
-								case OnWindowCreatedOnWorkspaceAction.MoveToTop:
-									topmostWindows[workspace.id - 1] = window;
-									break;
-							}
-						}
-					}
-				}
+                        if (!workspace.IsCurrentWorkspace && !isMinimized)
+                        {
+                            if (hasWorkspaceZeroRule || hasCurrentWorkspaceRule ||
+                                list.Count > 1 ||
+                                programRule.onWindowCreatedAction == OnWindowCreatedOrShownAction.HideWindow ||
+                                programRule.onWindowCreatedAction == OnWindowCreatedOrShownAction.TemporarilyShowWindowOnCurrentWorkspace)
+                            {
+                                // this workspace is not going to be switched to because of this window addition
+                                switch (programRule.onWindowCreatedOnInactiveWorkspaceAction)
+                                {
+                                    case OnWindowCreatedOnWorkspaceAction.MoveToTop:
+                                        topmostWindows[workspace.id - 1] = window;
+                                        break;
+                                }
+                            }
+                        }
+                    }
 
-				if (!programRule.showMenu)
-				{
-					list.First.Value.Item2.ShowHideWindowMenu();
-				}
+                    if (!programRule.showMenu)
+                    {
+                        list.First.Value.Item2.ShowHideWindowMenu();
+                    }
 
-				if (finishedInitializing)
-				{
-					if (!hasWorkspaceZeroRule && !hasCurrentWorkspaceRule)
-					{
-						switch (programRule.onWindowCreatedAction)
-						{
-							case OnWindowCreatedOrShownAction.SwitchToWindowsWorkspace:
-								SwitchToWorkspace(list.First.Value.Item1.id, false);
-								OnWindowCreatedOnCurrentWorkspace(hWnd, programRule);
-								break;
-							case OnWindowCreatedOrShownAction.MoveWindowToCurrentWorkspace:
-								ChangeApplicationToWorkspace(hWnd, CurrentWorkspace.id, matchingRules.First().workspace);
-								OnWindowCreatedOnCurrentWorkspace(hWnd, programRule);
-								break;
-						}
-					}
-					else
-					{
-						OnWindowCreatedOnCurrentWorkspace(hWnd, programRule);
-					}
-				}
-			}
+                    if (finishedInitializing)
+                    {
+                        if (!hasWorkspaceZeroRule && !hasCurrentWorkspaceRule)
+                        {
+                            switch (programRule.onWindowCreatedAction)
+                            {
+                                case OnWindowCreatedOrShownAction.SwitchToWindowsWorkspace:
+                                    SwitchToWorkspace(list.First.Value.Item1.id, false);
+                                    OnWindowCreatedOnCurrentWorkspace(hWnd, programRule);
+                                    break;
+                                case OnWindowCreatedOrShownAction.MoveWindowToCurrentWorkspace:
+                                    ChangeApplicationToWorkspace(hWnd, CurrentWorkspace.id, matchingRules.First().workspace);
+                                    OnWindowCreatedOnCurrentWorkspace(hWnd, programRule);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            OnWindowCreatedOnCurrentWorkspace(hWnd, programRule);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+
+            }
 
 			return true;
 		}
@@ -899,7 +906,7 @@ namespace Windawesome
 					}
 
 					CurrentWorkspace.IsCurrentWorkspace = false;
-					newWorkspace.Monitor.SwitchToWorkspace(newWorkspace);
+                    newWorkspace.Monitor.SwitchToWorkspace(newWorkspace);
 					newWorkspace.IsCurrentWorkspace = true;
 
 					if (needsToReposition)
@@ -937,6 +944,32 @@ namespace Windawesome
 				DoForTopmostWindowForWorkspace(CurrentWorkspace, w => CurrentWorkspace.WindowActivated(w.hWnd));
 			}
 		}
+
+        public Monitor GetCurrentMouseMonitor()
+        {
+            Screen s = Screen.FromPoint(new Point(Cursor.Position.X, Cursor.Position.Y));
+
+            Monitor m = monitors.Single(mm => mm.screen.Equals(s));
+
+            if (m != null)
+                return m;
+
+            return CurrentWorkspace.Monitor;
+        }
+
+		public void MoveWorkspaceToCurrentMonitor(int workspaceId)
+        {
+			var newWorkspace = workspaceId == 0 ? CurrentWorkspace : config.Workspaces[workspaceId - 1];
+            Monitor m = GetCurrentMouseMonitor();
+            if (newWorkspace.Monitor == m)
+            {
+                SwitchToWorkspace(workspaceId);
+            }
+            else
+            {
+                MoveWorkspaceToMonitor(newWorkspace, m);
+            }
+        }
 
 		public void MoveWorkspaceToMonitor(Workspace workspace, Monitor newMonitor, bool showOnNewMonitor = true,
 			bool switchTo = true)

@@ -48,7 +48,7 @@ namespace Windawesome
 				// set the "focus follows mouse"
 				if (config.FocusFollowsMouse != originalFocusFollowsMouse)
 				{
-					var focusFollowsMouse = config.FocusFollowsMouse;
+                    var focusFollowsMouse = config.FocusFollowsMouse;
 					NativeMethods.SystemParametersInfo(NativeMethods.SPI.SPI_SETACTIVEWINDOWTRACKING, 0,
 						ref focusFollowsMouse, 0);
 
@@ -59,7 +59,7 @@ namespace Windawesome
 				// set the "set window on top on focus follows mouse"
 				if (config.FocusFollowsMouseSetOnTop != originalFocusFollowsMouseSetOnTop)
 				{
-					var focusFollowsMouseSetOnTop = config.FocusFollowsMouseSetOnTop;
+                    var focusFollowsMouseSetOnTop = config.FocusFollowsMouseSetOnTop;
 					NativeMethods.SystemParametersInfo(NativeMethods.SPI.SPI_SETACTIVEWNDTRKZORDER, 0,
 						ref focusFollowsMouseSetOnTop, 0);
 
